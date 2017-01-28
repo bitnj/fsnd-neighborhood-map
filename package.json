@@ -1,0 +1,8 @@
+{
+  "name": "neighborhood-map-project",
+  "version": "1.0",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-uglify": "^2.0.0"
+  }
+}
