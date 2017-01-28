@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="initial-scale=1.0">
+        <meta charset="utf-8">
+        <!-- load the css styling -->
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+        <!-- load the jQuery library via Google CDN -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <!-- load the jQuery UI libary to get access to the slide effect -->
+        <script async defer src="http://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+        <!-- load font-awesome so we can use the Hamburger icon -->
+        <script src="https://use.fontawesome.com/623f68a557.js"></script>
+    </head>
+    <body>
+        <div id="menu">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </div>
+        <select data-bind="options: placeTypes, value: selectedType,
+            optionsCaption: 'Filter by type..'"></select>
+        <!-- use Knockout.js foreach method to populate the places list -->
+        <div id="placesList">
+            <ul data-bind="foreach: places">
+                <a href="#"><li data-bind="text: name, visible: visible, click:
+                $parent.getPlaceDetail"></li></a>
+            </ul>
+        </div>
+        <!-- div for the Google map to display in -->
+        <div id="map"></div>
+        
+        <!-- loads the Knockout.js library -->
+        <script type="text/javascript"
+            src="../node_modules/knockout/build/output/knockout-latest.js">
+        </script>
+        <!-- loads the Google Maps API including the Places library -->
+        <script
+            async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCnMHLRQzcL86kjy0cYWwGMW3RvBzkD-GI&callback=initMap&libraries=places">
+        </script>
+        <script src="js/app.js"></script>
+    </body>
+</html>
