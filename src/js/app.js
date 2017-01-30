@@ -6,6 +6,8 @@ var Place = function(PlaceObj, MarkerObj) {
 
     self.name = PlaceObj.name;
     self.placeTypes = PlaceObj.types;
+    self.lat = PlaceObj.geometry.location.lat();
+    self.lng = PlaceObj.geometry.location.lng();
     self.marker = MarkerObj;
     self.visible = ko.observable(true);
 }
@@ -17,6 +19,12 @@ var Place = function(PlaceObj, MarkerObj) {
 var ViewModel = function() {
     var self = this;
 
+
+    // toggle the hamburger menu when clicked
+    self.toggleMenu = function() {
+        $('#placesList').toggle('slide');
+    }
+
     // this will hold an array of data taken from the PlaceResult Objects
     // as returned by the nearbySearch() call to the Google Maps API
     // Places Library
@@ -24,8 +32,11 @@ var ViewModel = function() {
     
     // hard-coded set of placeTypes that are used to populate the select
     // drop-down
-    self.placeTypes = ko.observableArray(['art_gallery', 'bicycle_store',
-            'book_store', 'cafe']);
+    self.placeTypes = ko.observableArray(['art_gallery', 'bakery', 'bicycle_store',
+            'book_store', 'cafe',
+            'fire_station', 'library', 'lodging',
+            'meal_takeaway', 'museum', 'park',
+            'restaurant']);
    
     // add a new place and marker to the places array
     self.addPlace = function(PlaceObj, MarkerObj) {
@@ -35,13 +46,14 @@ var ViewModel = function() {
     // set the visible property on our places based on the selectedType
     self.setVisible = function(placeType) {
         for (var i = 0, places = self.places(); i < places.length; i++) {
-            if (places[i].placeTypes.includes(placeType) || typeof placeType=="undefined") {
-                places[i].visible(true);
-                places[i].marker.setMap(map);
+            var place = places[i];
+            if (place.placeTypes.includes(placeType) || typeof placeType=="undefined") {
+                place.visible(true);
+                place.marker.setMap(map);
             }
             else {
-                places[i].visible(false);
-                places[i].marker.setMap(null);
+                place.visible(false);
+                place.marker.setMap(null);
             }
         };
     }
@@ -53,9 +65,10 @@ var ViewModel = function() {
             self.setVisible(newValue);
     });
 
-    // when a user clicks on an item in the list or it's associated marker
+    // when a user clicks on an item in the places list
     self.getPlaceDetail = function(PlaceObj) {
-        toggleBounce(PlaceObj.marker);
+        nytRequest(PlaceObj);
+        fsqrRequest(PlaceObj);
     }
 };
 var vm = new ViewModel();
@@ -76,14 +89,7 @@ function initMap() {
     // create the map object and center it on our chosen location
     map = new google.maps.Map(document.getElementById('map'), {
         center: latLng,
-        zoom: 13 
-    });
-
-    // create the map Marker for our hard-coded location
-    var marker = new google.maps.Marker({
-        position: latLng,
-        map: map,
-        title: 'Home'
+        zoom: 13
     });
 
     // set the map options to disable dragging and zooming
@@ -125,18 +131,28 @@ function createMarker(PlaceObj) {
         position: PlaceObj.geometry.location,
         title: PlaceObj.name
     });
-    marker.addListener('click', function() {
-        toggleBounce(marker);
-        createInfoWindow().open(map, marker);
-    });
+    marker.setAnimation(null);
     marker.setMap(map);
     return marker;
 }
 
-// create an InfoWindow to associate with the passed in marker
-function createInfoWindow() {
-    var infowindow = new google.maps.InfoWindow({});
-    return infowindow;
+// create an InfoWindow for displaying available NYT articles links
+function createInfoWindow(marker, articles) {
+    if (articles.length > 0) {
+        var contentString = '<ul>';
+        for (var i = 0; i < articles.length; i++) {
+            var article = articles[i];
+            contentString += '<li>' + '<a href="'+article.web_url+'">' + 
+                article.headline.main + '</a></li>';
+        };
+        contentString += '</ul>';
+    } else {
+        contentString = 'No NYT articles available';
+    }
+    marker.infowindow = new google.maps.InfoWindow({
+        content: contentString     
+    });
+    return marker.infowindow;
 }
 
 // toggle the bounce animation on a marker.  From Google map API documentation
@@ -146,4 +162,54 @@ function toggleBounce(marker) {
     } else {
         marker.setAnimation(google.maps.Animation.BOUNCE);
     }
+}
+
+
+/*
+ * Retrieve links to New York times articles related to the passed in place
+ */
+function nytRequest(placeObj) {
+    var nytAPIUrl = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=';
+    var apiKey = '12b1ea26e35c4b7c9f124169f2ae3013';
+    var requestURL = nytAPIUrl + placeObj.name + ' Hopewell, NJ' + '&api-key=' + apiKey;
+    
+    if (typeof placeObj.marker.infowindow == 'undefined') {
+        $.getJSON(requestURL, function(data) {
+            var infowindow = createInfoWindow(placeObj.marker, data.response.docs);
+            infowindow.open(map, placeObj.marker);
+        })
+        .fail(function() {
+            alert("ajax request failed");
+        });
+    } else if (placeObj.marker.getAnimation() !== null) {
+        placeObj.marker.infowindow.close();
+    } else {
+        placeObj.marker.infowindow.open(map);
+    }
+    toggleBounce(placeObj.marker);
+}
+
+
+/*
+ * Retrieve data from the Foursquare API using the latitude and longitude
+ * of the Google MAPS PlaceResult object
+ */
+function fsqrRequest(placeObj) {
+    var fsqrAPIUrl = 'https://api.foursquare.com/v2/venues/search?ll=';
+    var client_id='FV0ODMT135QKDMWNIYOLAZHGEIFBZCHE5S54ZEKBBQWV5ZSK';
+    var client_secret='4P2FWJ20X4RBAK1U4B1QEX1EKGYASEVWL1BKMDFD2TJECKF2';
+    var v = 20170101;
+
+    var requestURL = fsqrAPIUrl + placeObj.lat + ',' + placeObj.lng +
+        '&query=' + placeObj.name + '&intent=match' +
+        '&client_id=' + client_id + '&client_secret=' + client_secret +
+        '&v=' + v;
+
+    $.getJSON(requestURL, function(data) {
+        alert('success');
+        console.log(data);
+    })
+    .fail(function() {
+        alert("Foursquare request failed");
+    });
 }

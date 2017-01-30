@@ -13,13 +13,14 @@
         <script src="https://use.fontawesome.com/623f68a557.js"></script>
     </head>
     <body>
-        <div id="menu">
+        <div id="menu" data-bind="click: toggleMenu">
             <i class="fa fa-bars" aria-hidden="true"></i>
+            <h2>Welcome to Hopewell</h2>
         </div>
-        <select data-bind="options: placeTypes, value: selectedType,
-            optionsCaption: 'Filter by type..'"></select>
-        <!-- use Knockout.js foreach method to populate the places list -->
-        <div id="placesList">
+        <div id="placesList" style="display: none">
+            <select size=5 data-bind="options: placeTypes, value: selectedType,
+            optionsCaption: 'Show All'"></select>
+            <!-- use Knockout.js foreach method to populate the places list -->
             <ul data-bind="foreach: places">
                 <a href="#"><li data-bind="text: name, visible: visible, click:
                 $parent.getPlaceDetail"></li></a>
