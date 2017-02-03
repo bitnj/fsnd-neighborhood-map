@@ -1,8 +1,23 @@
 {
   "name": "neighborhood-map-project",
   "version": "1.0",
+  "description": "one page app using Knockout",
+  "main": "app",
+  "author": "bitnj",
+  "bugs": {
+    "url": "https://github.com/bitnj/fsnd-neighborhood-map/issues"
+  },
+  "homepage": "https://github.com/bitnj/fsnd-neighborhood-map#readme",
   "devDependencies": {
     "grunt": "^1.0.1",
-    "grunt-contrib-uglify": "^2.0.0"
-  }
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-htmllint": "^0.2.7",
+    "grunt-mkdir": "^1.0.0",
+    "htmllint": "^0.6.0",
+    "load-grunt-tasks": "^3.5.2"
+  },
+  "dependencies": {}
 }

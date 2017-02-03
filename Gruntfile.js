@@ -1,22 +1,23 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
-    // load plugins need to complete our tasks
-    grunt.loadNpmTasks('grunt-contrib-uglify');
+    /* yml file containing all project directories */
+    var config = grunt.file.readYAML('Gruntconfig.yml');
+
+    /* load all dependencies */
+    require('load-grunt-tasks')(grunt);
+
+    /* configure grunt tasks - load from separate files to keep it modular
+     * even though its overkill for this project */
+    require('./grunt_tasks/html.js')(grunt, config);
+    require('./grunt_tasks/javascript.js')(grunt, config);
+    require('./grunt_tasks/general.js')(grunt, config);
     
-    
-    // Project configuration.
-    grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
 
-        // create minified versions of the JavaScript files
-        uglify: {
-            build: {
-                src: 'js/foo.js',
-                dest: 'js/foo.min.js'
-            }
-        }
-    });
+    /* Tasks to be run when Grunt called with no specific task */
+    grunt.registerTask('default', ['mkdir',
+            'clean',
+            'uglify',
+            'htmllint',
+            'jshint', 'copy']);
 
-
-    // Tasks to be run when Grunt called with no specific task
-    grunt.registerTask('default', ['uglify']);
+};
