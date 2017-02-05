@@ -21,9 +21,13 @@ var Place = function(PlaceObj, MarkerObj) {
 var ViewModel = function() {
     var self = this;
 
-    // toggle the hamburger menu when clicked
+    // toggle the overlay when the hamburger menu is clicked
     self.togglemenu = function() {
-        $('#placesList').toggle('slide');
+        if ($('#placesList').width() > 0) {
+            $('#placesList').css('width', "0px");
+        } else {
+            $('#placesList').css('width', "100%");
+        }
     };
 
     // this will hold an array of data taken from the PlaceResult Objects
@@ -69,6 +73,19 @@ var ViewModel = function() {
 
     // when a user clicks on an item in the places list
     self.getPlaceDetail = function(PlaceObj) {
+        /* couldn't find a more graceful way to shut down the info window
+         * and the bouncing marker so this allows you to not have to manually
+         * close the open info window or click on the bouncing marker to stop
+         * the animation.  The problem is there isn't a supported way to
+         * disable the X on the InfoWindow, which means if the user closes
+         * it manually then the toggle will re-open it when what we really
+         * want is to close it */
+        if (self.currentPlaceObj !== null) {
+            toggleBounce(self.currentPlaceObj.marker);
+            toggleInfoWindow(self.currentPlaceObj);
+        }
+
+        /* set the current place object and center the map on that location */
         self.currentPlaceObj = PlaceObj;
         map.panTo({lat: PlaceObj.lat, lng: PlaceObj.lng});
 
@@ -83,6 +100,7 @@ var ViewModel = function() {
         });
         toggleBounce(PlaceObj.marker);
         toggleInfoWindow(PlaceObj);
+        self.togglemenu();
     };
 };
 var vm = new ViewModel();

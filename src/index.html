@@ -14,14 +14,16 @@
         <script src="https://use.fontawesome.com/623f68a557.js"></script>
     </head>
     <body>
-        <div id="menu" data-bind="click: togglemenu">
-            <i class="fa fa-bars" aria-hidden="true"></i>
-        </div>
         <div id="title">
             <h2>Welcome to Hopewell</h2>
         </div>
+        <div id="menu" data-bind="click: togglemenu">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </div>
 
-        <div id="placesList" style="display: none">
+        <div id="placesList" class="overlay">
+            <!-- Button to close the overlay navigation -->
+            <a class="closebtn" data-bind="click: togglemenu">&times;</a>
             <div id="selectOptions">
                 <select size="5" id="selectbox" data-bind="options: placeTypes,
                     value: selectedType,optionsCaption: 'Show All'"></select>
