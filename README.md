@@ -24,8 +24,9 @@ virtual machine is provided here.
 
 ## Knockout
 The project depends on *Knockout* so this must be installed to successfully run
-the code. ####The project has been updated to provide Knockout via CDN so that
-local installation is not required.
+the code. 
+
+#### The project has been updated to provide Knockout via CDN so that local installation is not required.
 
 Alternatively, to have Knockout installed locally type to following in the root
 of the project directory:
