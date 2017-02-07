@@ -1,11 +1,26 @@
 /**
- * Short of moving it to a separate file store the starting latitude and longitude 
- * to make more readily changeable without having to search.
+ * @const
+ * @type {{Lat: number, Lng: number}} LatLng
  */
 var SETTINGS = {lat: 40.3893, lng: -74.7618};
 
-/*
- * defines a Place class
+/**
+ * Creates a Place from a {PlaceResult}
+ * @class Place
+ * @classdesc The Place class combines a subset of information from the passed
+ * in Google Maps PlaceResult object with results of the NYT and Foursquare API
+ * calls.  It also integrates the Google Maps Marker objects.
+ * @property {string} name  - The name of the location.
+ * @property {string[]} placeTypes  - An array of Google Maps PlaceTypes.
+ * @property {number} lat   - The latitude of this location.
+ * @property {number} lng   - The longitude of this location.
+ * @property {string} NYTContent    - A string for displaying the NYT API
+ * results.
+ * @property {string} FoursquareContent - A string for displaying the Foursquare
+ * API results.
+ * @property {boolean} visible - Is the location displayed in the places list.
+ * @property {object} marker    - The Google Maps Marker object for this
+ * location.
  */
 var Place = function(PlaceObj) {
     var self = this;
@@ -18,7 +33,7 @@ var Place = function(PlaceObj) {
     self.FoursquareContent = '';
     self.visible = ko.observable(true);
 
-    /** create a marker for this place */
+    // create a marker for this place
     self.marker = new google.maps.Marker({
         position: PlaceObj.geometry.location,
         title: self.name
@@ -26,18 +41,33 @@ var Place = function(PlaceObj) {
     self.marker.setAnimation(null);
     self.marker.setMap(map);
 
+    /**
+     * This click event is used to toggle the state of the Marker
+     * animation, InfoWindow, and makes the Ajax calls to the NYT and Foursquare
+     * APIs.  This event is also triggered by the selection of items from the
+     * placesList
+     * @function marker.click
+     */
     self.marker.addListener('click', function() {
         if (vm.currentMarker !== null && vm.currentMarker.getAnimation() !== null) {
             toggleBounce(vm.currentMarker);
         }
-        vm.currentMarker = self.marker
+        vm.currentMarker = self.marker;
 
+        /**
+         * center the map on the selected marker
+         */
         map.panTo({lat: self.lat, lng: self.lng});
 
+        /**
+         * return the jqXHR objects from the Ajax calls
+         */
         var asynch1 = fsqrRequest(self);
         var asynch2 = nytRequest(self);
-        // wait until the two ajax calls have finished before setting
-        // the content of the open InfoWindow
+        /**
+         * wait until the two ajax calls have finished before setting the
+         * content of the open InfoWindow
+         */
         $.when(asynch1, asynch2).done(function() {
             infoWindow.setContent(self.FoursquareContent + self.NYTContent);
         });
@@ -46,43 +76,65 @@ var Place = function(PlaceObj) {
     });
 };
 
-
-/*
- * ViewModel
+/**
+ * ViewModel for the application that links together the View and the Model
+ * using the Knockout library.
+ * @namespace ViewModel
  */
 var ViewModel = function() {
     var self = this;
 
-    /* @menuState */
+    /** 
+     * The Open-Closed state of the Overlay Menu
+     * @memberof ViewModel
+     */
     self.menuState = ko.observable('overlayOpen');
 
-    // toggle the overlay when the hamburger menu is clicked
+    /**
+     * Toggles the Overlay Menu when the hamburger click event is triggered.
+     * @function togglemenu
+     * @memberof ViewModel
+     */
     self.togglemenu = function() {
         if (self.menuState() == 'overlay') {
             self.menuState('overlayOpen'); 
         } else {
             self.menuState('overlay'); 
         }
-    }
+    };
 
-    // this will hold an array of data taken from the PlaceResult Objects
-    // as returned by the nearbySearch() call to the Google Maps API
-    // Places Library
+    /** 
+     * Holds an array of data taken from the PlaceResult Objects
+     * as returned by the nearbySearch() call to the Google Maps API
+     * Places Library
+     * @memberof ViewModel
+     */
     self.places = ko.observableArray();
     
-    // hard-coded set of placeTypes that are used to populate the select
-    // drop-down
+    /**
+     * Hard-coded set of placeTypes that are used to populate the select
+     * drop-down
+     * @memberof ViewModel
+     */
     self.placeTypes = ko.observableArray(['bakery', 'cafe',
             'library', 'lodging',
             'meal_takeaway', 'park',
             'restaurant']);
    
-    // add a new place and marker to the places array
+    /**
+     * Adds a new Place object to the places array
+     * @function addPlace
+     * @memberof ViewModel
+     */
     self.addPlace = function(PlaceObj) {
         self.places.push(new Place(PlaceObj));
     };
 
-    // set the visible property on our places based on the selectedType
+    /**
+     * Sets the visible property of the Place object
+     * @function setVisible
+     * @memberof ViewModel 
+     */
     self.setVisible = function(placeType) {
         for (var i = 0, places = self.places(), len = places.length; i < len; i++) {
             var place = places[i];
@@ -92,16 +144,32 @@ var ViewModel = function() {
         }
     };
 
+    /**
+     * The currently selected Place Type
+     * @memberof ViewModel
+     */
     self.selectedType = ko.observable();
-    // get notified when the selection changes so the list of
-    // places can be filtered to only show those that have a matching placeType
+    
+    /**
+     * Triggers the setVisible() function when the selectedType is changed
+     * @memberof ViewModel
+     */
     self.selectedType.subscribe(function(newValue) {
             self.setVisible(newValue);
     });
     
+    /**
+     * The currently selected Marker object
+     * @memberof ViewModel
+     */
     self.currentMarker = null;
 
-    // when a user clicks on an item in the places list
+    /**
+     * Triggers the click event on a Marker when the corresponding item in the
+     * placesList is clicked
+     * @function getPlaceDetail
+     * @memberof ViewModel
+     */
     self.getPlaceDetail = function(PlaceObj) {
         google.maps.event.trigger(PlaceObj.marker, 'click');
         self.togglemenu();
@@ -112,37 +180,53 @@ var vm = new ViewModel();
 ko.applyBindings(vm);
 
 
-/*
- * Retrieve a list of places from the Google Maps API using the PlacesService
- * library
- */
 var map;
 var service;
 var infoWindow;
-
+/**
+ * Retrieve a list of places from the Google Maps API using the
+ * PlacesService library
+ * @namespace initMap
+ */
 function initMap() {
-    // provides a hard-coded latitude and longitude to center the map on
+    /** 
+     * Provides a hard-coded latitude and longitude to center the map on
+     * @memberof initMap
+     */
     var latLng = SETTINGS;
 
-    // create the map object and center it on our chosen location
+    /**
+     * Create the map object and center it on our chosen location 
+     * @memberof initMap 
+     */
     map = new google.maps.Map(document.getElementById('map'), {
         center: latLng,
         zoom: 13
     });
 
-    // set the map options to disable dragging and zooming
+    /**
+     * Set the map options to disable dragging and zooming
+     * @function setOptions
+     * @memberof initMap
+     */
     map.setOptions({draggable: false, scrollwheel: false, zoomControl: false});
     
-    // form the request to be passed to nearbySearch()
+    /** 
+     * form the request to be passed to nearbySearch()
+     * @memberof initMap 
+     */
     var request = {
         location: latLng,
         radius: '5000',     // radius of circle in meters
         types: vm.placeTypes() 
     };
 
-    // use the PlacesService to perform a nearbySearch() using the above
-    // request and a provided callback function to handle the returned
-    // array of PlaceResult objects
+    /**
+     * Use the PlacesService to perform a nearbySearch() using the above
+     * request and a provided callback function to handle the returned
+     * array of PlaceResult objects
+     * @memberof initMap
+     */
     service = new google.maps.places.PlacesService(map);
     service.nearbySearch(request, processResults);
 
@@ -157,13 +241,17 @@ function initMap() {
     });
 }
 
-/** callback function for the nearbyRequest() search which takes
+/** 
+ * Callback function for the nearbyRequest() search which takes
  * the array of PlaceResult objects and the return status of the 
- * nearbySearch() call */
+ * nearbySearch() call.
+ * @function processResults
+ */
 function processResults(results, status) {
     if (status == google.maps.places.PlacesServiceStatus.OK) {
-        /** add each PlaceResult object to our Model data via the addPlace()
-        * function in the ViewModel */
+        /* add each PlaceResult object to our Model data via the addPlace()
+         * function in the ViewModel
+         */
         results.forEach(function(result) {
             vm.addPlace(result);
         });
@@ -172,15 +260,20 @@ function processResults(results, status) {
 }
 
 
-/*
- * Google Maps API fail
+/**
+ * Handle Google Maps API fail
+ * @function mapsAPIFail
  */
 function mapsAPIFail() {
     alert("Google Maps API failed to load");
 }
 
 
-// toggle the bounce animation on a marker.  From Google map API documentation
+/**
+ * Toggle the bounce animation of the marker
+ * @function toggleBounce
+ * @param marker
+ */
 function toggleBounce(marker) {
     if (marker.getAnimation() !== null) {
         marker.setAnimation(null);
@@ -189,15 +282,23 @@ function toggleBounce(marker) {
     }
 }
 
-// toggle the visibility of an infowindow
+/** 
+ * Refresh the infoWindow
+ * @function toggleInfoWindow
+ * @param PlaceObj
+ */
 function toggleInfoWindow(PlaceObj) {
     infoWindow.close();
     infoWindow.open(map, PlaceObj.marker);
 }
 
 
+/**
+ * Fill the contentString with the NYT data
+ * @function fillContentNYT
+ * @param data
+ */
 var NYTcontentString = '';
-// Fill the contentString with the NYT information
 function fillContentNYT(data) {
     var articles = data.response.docs;
     if (articles.length > 0) {
@@ -214,8 +315,12 @@ function fillContentNYT(data) {
 }
 
 
+/**
+ * Fill the contentString with the Foursquare data
+ * @function fillContentFsqr
+ * @param data
+ */
 var FsqrContentString = '';
-// Fill the contentString with the Foursquare information
 function fillContentFsqr(data) {
     if (data.length > 0) {
         FsqrContentString = data[0].name + '<br>' + 'ph: ' +
@@ -228,8 +333,10 @@ function fillContentFsqr(data) {
 }
 
 
-/*
- * Retrieve links to New York times articles related to the passed in place
+/**
+ * Make the API request to NYT
+ * @function nytRequest
+ * @param Place
  */
 function nytRequest(Place) {
     var nytAPIUrl = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=';
@@ -245,9 +352,10 @@ function nytRequest(Place) {
 }
 
 
-/*
- * Retrieve data from the Foursquare API using the latitude and longitude
- * of the Google MAPS PlaceResult object
+/**
+ * Make the API request to Foursquare
+ * @function fsqrRequest
+ * @param Place
  */
 function fsqrRequest(Place) {
     var fsqrAPIUrl = 'https://api.foursquare.com/v2/venues/search?ll=';

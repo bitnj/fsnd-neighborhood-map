@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: app.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: app.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @const
  * @type {{Lat: number, Lng: number}} LatLng
  */
@@ -49,10 +77,10 @@ var Place = function(PlaceObj) {
      * @function marker.click
      */
     self.marker.addListener('click', function() {
-        if (vm.currentMarker !== null && vm.currentMarker.getAnimation() !== null) {
+        if (vm.currentMarker !== null &amp;&amp; vm.currentMarker.getAnimation() !== null) {
             toggleBounce(vm.currentMarker);
         }
-        vm.currentMarker = self.marker;
+        vm.currentMarker = self.marker
 
         /**
          * center the map on the selected marker
@@ -101,7 +129,7 @@ var ViewModel = function() {
         } else {
             self.menuState('overlay'); 
         }
-    };
+    }
 
     /** 
      * Holds an array of data taken from the PlaceResult Objects
@@ -136,7 +164,7 @@ var ViewModel = function() {
      * @memberof ViewModel 
      */
     self.setVisible = function(placeType) {
-        for (var i = 0, places = self.places(), len = places.length; i < len; i++) {
+        for (var i = 0, places = self.places(), len = places.length; i &lt; len; i++) {
             var place = places[i];
             var match = place.placeTypes.includes(placeType) || typeof placeType=="undefined"; 
             place.visible(match);
@@ -302,12 +330,12 @@ var NYTcontentString = '';
 function fillContentNYT(data) {
     var articles = data.response.docs;
     if (articles.length > 0) {
-        NYTcontentString = '<ul>';
+        NYTcontentString = '&lt;ul>';
         articles.forEach(function(article) {
-            NYTcontentString += '<li><a href="' + article.web_url +
-                '"target="_blank">' + article.headline.main + '</a></li>';
+            NYTcontentString += '&lt;li>&lt;a href="' + article.web_url +
+                '"target="_blank">' + article.headline.main + '&lt;/a>&lt;/li>';
         });
-        NYTcontentString += '</ul>';
+        NYTcontentString += '&lt;/ul>';
     } else {
         NYTcontentString = 'No NYT articles available';
     }
@@ -323,11 +351,11 @@ function fillContentNYT(data) {
 var FsqrContentString = '';
 function fillContentFsqr(data) {
     if (data.length > 0) {
-        FsqrContentString = data[0].name + '<br>' + 'ph: ' +
+        FsqrContentString = data[0].name + '&lt;br>' + 'ph: ' +
             data[0].contact.formattedPhone +
-            '<br><br>';
+            '&lt;br>&lt;br>';
     } else {
-        FsqrContentString = 'No Foursqare data available' + '<br>';
+        FsqrContentString = 'No Foursqare data available' + '&lt;br>';
     }
     return FsqrContentString;
 }
@@ -341,7 +369,7 @@ function fillContentFsqr(data) {
 function nytRequest(Place) {
     var nytAPIUrl = 'https://api.nytimes.com/svc/search/v2/articlesearch.json?q=';
     var apiKey = '12b1ea26e35c4b7c9f124169f2ae3013';
-    var requestURL = nytAPIUrl + Place.name + ' Hopewell, NJ' + '&api-key=' + apiKey;
+    var requestURL = nytAPIUrl + Place.name + ' Hopewell, NJ' + '&amp;api-key=' + apiKey;
     
     return $.getJSON(requestURL, function(data) {
         Place.NYTContent = fillContentNYT(data); 
@@ -364,9 +392,9 @@ function fsqrRequest(Place) {
     var v = 20170101;
 
     var requestURL = fsqrAPIUrl + Place.lat + ',' + Place.lng +
-        '&query=' + Place.name + '&intent=match' +
-        '&client_id=' + client_id + '&client_secret=' + client_secret +
-        '&v=' + v;
+        '&amp;query=' + Place.name + '&amp;intent=match' +
+        '&amp;client_id=' + client_id + '&amp;client_secret=' + client_secret +
+        '&amp;v=' + v;
 
     return $.getJSON(requestURL, function(data) {
         Place.FoursquareContent = fillContentFsqr(data.response.venues);
@@ -375,3 +403,26 @@ function fsqrRequest(Place) {
         alert("Foursquare request failed");
     });
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Place.html">Place</a></li></ul><h3>Namespaces</h3><ul><li><a href="initMap.html">initMap</a></li><li><a href="ViewModel.html">ViewModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#fillContentFsqr">fillContentFsqr</a></li><li><a href="global.html#fillContentNYT">fillContentNYT</a></li><li><a href="global.html#fsqrRequest">fsqrRequest</a></li><li><a href="global.html#mapsAPIFail">mapsAPIFail</a></li><li><a href="global.html#nytRequest">nytRequest</a></li><li><a href="global.html#processResults">processResults</a></li><li><a href="global.html#SETTINGS">SETTINGS</a></li><li><a href="global.html#toggleBounce">toggleBounce</a></li><li><a href="global.html#toggleInfoWindow">toggleInfoWindow</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Feb 07 2017 14:27:16 GMT-0500 (EST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
