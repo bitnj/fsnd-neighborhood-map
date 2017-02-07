@@ -48,14 +48,17 @@ required.
 In the root of the project directory type:
 
   * sudo npm install -g grunt-cli
-  * sudo npm install grunt-contrib-clean --save-dev 
-  * sudo npm install grunt-contrib-copy --save-dev 
-  * sudo npm install grunt-contrib-jshint --save-dev 
-  * sudo npm install grunt-contrib-uglify --save-dev 
-  * sudo npm install grunt-htmllint --save-dev 
-  * sudo npm install grunt-mkdir --save-dev 
-  * sudo npm install htmllint --save-dev 
-  * sudo npm install load-grunt-tasks --save-dev
+
+Running the command `npm install` to load all dependencies listed in the
+package.json file.  In this project that includes the following:
+  * grunt-contrib-clean 
+  * grunt-contrib-copy 
+  * grunt-contrib-jshint 
+  * grunt-contrib-uglify 
+  * grunt-htmllint 
+  * grunt-mkdir 
+  * htmllint 
+  * load-grunt-tasks
 
 To run the Grunt tasks, simply type grunt at the command line in the project
 directory.
